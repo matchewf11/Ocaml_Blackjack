@@ -1,8 +1,16 @@
 (* Window Fields *)
 let game_name = "Blackjack"
 let target_fps = 60
+let header_height = 30
 let window_width = 800
 let window_height = 600
+
+(* Header fields *)
+let cushion = 2
+let font_size = 20
+let balence_x = window_width / 4
+let bet_x = window_width / 2
+let fps_x = window_width / 4 * 3
 
 (* Game Fields *)
 let init_balence = 500
@@ -10,29 +18,50 @@ let init_bet = init_balence / 5
 
 type phase = Betting | Playing | Won | Lost
 type card = { rank : string; suit : string }
+type player = { hand : card list; balance : int; bet : int }
 
 type game_state = {
   phase : phase;
   deck : card list;
-  player_balance : int;
-  player_bet : int;
-  player_hand : card list;
+  player : player;
   dealer_hand : card list;
 }
+
+let string_of_phase = function
+  | Betting -> "Betting"
+  | Playing -> "Playing"
+  | Won -> "Won"
+  | Lost -> "Lost"
 
 let update_game game_state = game_state
 
 let draw_game game_state =
-  Raylib.begin_drawing ();
-  Raylib.clear_background Raylib.Color.raywhite;
-  (* draw hints *)
-  (* draw phase *)
+  let open Raylib in
+  begin_drawing ();
+  clear_background Color.raywhite;
+
+  (* Draw Header *)
+  draw_rectangle 0 0 window_width header_height Color.brown;
+  draw_text
+    ("Phase: " ^ string_of_phase game_state.phase)
+    cushion cushion font_size Color.black;
+  draw_text
+    ("Balance: " ^ string_of_int game_state.player.balance)
+    balence_x cushion font_size Color.black;
+  draw_text
+    ("Bet: " ^ string_of_int game_state.player.bet)
+    bet_x cushion font_size Color.black;
+  draw_fps fps_x cushion;
+
+  (* Draw Board *)
+  draw_rectangle 0 header_height window_width
+    (window_height - header_height)
+    Color.green;
+
   (* draw deck *)
-  (* draw player balence *)
-  (* draw player bet *)
   (* draw player hand *)
   (* draw dealer hand *)
-  Raylib.end_drawing ()
+  end_drawing ()
 
 let rec game_loop game_state =
   (if Raylib.window_should_close () then Raylib.close_window ()
@@ -48,9 +77,7 @@ let setup_game () =
   {
     phase = Betting;
     deck = [];
-    player_balance = init_balence;
-    player_bet = init_bet;
-    player_hand = [];
+    player = { balance = init_balence; bet = init_bet; hand = [] };
     dealer_hand = [];
   }
 
